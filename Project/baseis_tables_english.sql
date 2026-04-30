@@ -48,7 +48,7 @@ CREATE TABLE administrative_personnel (
 CREATE TABLE departments (
     department_id SERIAL PRIMARY KEY,
     department_description VARCHAR(150) NOT NULL,
-    number_of_beds INT NOT NULL,
+    number_of_rooms INT NOT NULL,
     floor INT,
     building VARCHAR(100),
     director INT,
@@ -86,14 +86,13 @@ CREATE TABLE doctor_department (
         REFERENCES departments(department_id)
 );
 
-CREATE TABLE beds (
-    bed_id SERIAL PRIMARY KEY,
-    bed_type VARCHAR(50) NOT NULL,
-    bed_status VARCHAR(50) NOT NULL,
+CREATE TABLE rooms (
+    room_id SERIAL PRIMARY KEY,
+    room_type VARCHAR(100) NOT NULL,
+    room_status VARCHAR(50) NOT NULL,
+    capacity INT DEFAULT 0,
     department_id INT,
-    CONSTRAINT fk_beds_departments
-        FOREIGN KEY (department_id)
-        REFERENCES departments(department_id)
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
 CREATE TABLE shift (
@@ -161,9 +160,10 @@ CREATE TABLE medicine (
 );
 
 CREATE TABLE ken (
-    ken_id SERIAL PRIMARY KEY,
-    cost NUMERIC(10,2) NOT NULL,
-    mdn VARCHAR(50) NOT NULL,
+    ken_id SERIAL PRIMARY KEY,   
+    ken_code TEXT NOT NULL,        
+    cost NUMERIC(10, 3) NOT NULL,       
+    mdn INT NOT NULL,
     ken_description TEXT NOT NULL
 );
 
@@ -180,7 +180,7 @@ CREATE TABLE admission (
     medical_act TEXT,
     medication TEXT,
     admission_evaluation TEXT,
-    bed_id INT,
+    room_id INT,
     CONSTRAINT fk_admission_patients
         FOREIGN KEY (patient_id)
         REFERENCES patients(patient_id),
@@ -197,8 +197,8 @@ CREATE TABLE admission (
         FOREIGN KEY (ken_id)
         REFERENCES ken(ken_id),
     CONSTRAINT fk_admission_beds
-        FOREIGN KEY (bed_id)
-        REFERENCES beds(bed_id)
+        FOREIGN KEY (room_id)
+        REFERENCES rooms(room_id)
 );
 
 CREATE TABLE admission_evaluation (
@@ -262,6 +262,7 @@ CREATE TABLE emergency_case (
     symptoms TEXT,
     emergency_level VARCHAR(50),
     outcome TEXT,
+    arrival_time TIMESTAMP,
     CONSTRAINT fk_peristatiko_epeigontwn_patients
         FOREIGN KEY (patient_id)
         REFERENCES patients(patient_id),
