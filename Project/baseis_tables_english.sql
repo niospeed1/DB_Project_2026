@@ -176,8 +176,9 @@ CREATE TABLE admission (
     admission_diagnosis TEXT,
     discharge_diagnosis TEXT,
     ken_id INT,
+    total_cost NUMERIC(10,3),
     lab_exams TEXT,
-    medical_act TEXT,
+    medical_act_id INTEGER,
     medication TEXT,
     admission_evaluation TEXT,
     room_id INT,
@@ -198,7 +199,10 @@ CREATE TABLE admission (
         REFERENCES ken(ken_id),
     CONSTRAINT fk_admission_beds
         FOREIGN KEY (room_id)
-        REFERENCES rooms(room_id)
+        REFERENCES rooms(room_id),
+    CONSTRAINT fk_medical_act
+        FOREIGN KEY (medical_act_id)
+        REFERENCES medical_acts(medical_act_id)
 );
 
 CREATE TABLE admission_evaluation (
@@ -238,10 +242,16 @@ CREATE TABLE prescription (
         REFERENCES admission(admission_id)
 );
 
+CREATE TABLE lab_exams_codes(
+    lab_exam_code_id SERIAL PRIMARY KEY,
+    lab_exam_code VARCHAR(50),
+    lab_exam_description TEXT
+);
+
 CREATE TABLE lab_exams (
     lab_exam_id SERIAL PRIMARY KEY,
     admission_id INT NOT NULL,
-    lab_exam_type VARCHAR(100) NOT NULL,
+    lab_exam_type INTEGER,
     lab_exam_date DATE NOT NULL,
     lab_exam_result TEXT,
     lab_exam_cost INT,
@@ -251,7 +261,10 @@ CREATE TABLE lab_exams (
         REFERENCES admission(admission_id),
     CONSTRAINT fk_ergastiriakes_eksetaseis_doctors
         FOREIGN KEY (doctor_id)
-        REFERENCES doctors(doctor_id)
+        REFERENCES doctors(doctor_id),
+    CONSTRAINT fk_lab_exam_code
+        FOREIGN KEY(lab_exam_type)
+        REFERENCES lab_exams_codes(lab_exam_code_id)
 );
 
 CREATE TABLE emergency_case (
@@ -263,6 +276,7 @@ CREATE TABLE emergency_case (
     emergency_level VARCHAR(50),
     outcome TEXT,
     arrival_time TIMESTAMP,
+    handled_time TIMESTAMP,
     CONSTRAINT fk_peristatiko_epeigontwn_patients
         FOREIGN KEY (patient_id)
         REFERENCES patients(patient_id),
@@ -274,21 +288,29 @@ CREATE TABLE emergency_case (
         REFERENCES nurses(nurse_id)
 );
 
+CREATE TABLE medical_act_codes (
+    medical_act_code_id SERIAL PRIMARY KEY,
+    medical_act_code VARCHAR(50) NOT NULL,
+    medical_act_description TEXT
+);
+
 CREATE TABLE medical_acts (
     medical_act_id SERIAL PRIMARY KEY,
-    medical_act_name VARCHAR(100) NOT NULL,
-    medical_act_category VARCHAR(100),
+    medical_act_type INTEGER,
+    medical_act_category VARCHAR(50),
     duration INT,
-    medical_act_cost NUMERIC(10,2),
+    medical_act_cost INTEGER,
     location VARCHAR(100),
     surgeon_id INT,
-    admission_id INT,
     CONSTRAINT fk_medical_act_doctors
         FOREIGN KEY (surgeon_id)
         REFERENCES doctors(doctor_id),
-    CONSTRAINT fk_medical_act_admission
-        FOREIGN KEY (admission_id)
-        REFERENCES admission(admission_id)
+    CONSTRAINT fk_medical_act_ken 
+        FOREIGN KEY (medical_act_cost) 
+        REFERENCES ken (ken_id),
+    CONSTRAINT fk_medical_act_code
+        FOREIGN KEY (medical_act_type)
+        REFERENCES medical_act_codes(medical_act_code_id)
 );
 
 CREATE TABLE medical_act_assistants (
