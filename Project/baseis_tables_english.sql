@@ -300,7 +300,7 @@ CREATE TABLE medical_acts (
     medical_act_category VARCHAR(50),
     duration INT,
     medical_act_cost INTEGER,
-    location VARCHAR(100),
+    room_id INTEGER,
     surgeon_id INT,
     CONSTRAINT fk_medical_act_doctors
         FOREIGN KEY (surgeon_id)
@@ -310,7 +310,10 @@ CREATE TABLE medical_acts (
         REFERENCES ken (ken_id),
     CONSTRAINT fk_medical_act_code
         FOREIGN KEY (medical_act_type)
-        REFERENCES medical_act_codes(medical_act_code_id)
+        REFERENCES medical_act_codes(medical_act_code_id),
+    CONSTRAINT fk_medical_act_room
+        FOREIGN KEY (room_id)
+        REFERENCES rooms(room_id)
 );
 
 CREATE TABLE medical_act_assistants (
