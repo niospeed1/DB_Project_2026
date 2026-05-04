@@ -84,7 +84,7 @@ BEGIN
             medical_act_category, 
             duration, 
             medical_act_cost, 
-            location, 
+            room_id, 
             surgeon_id
         ) VALUES (
             v_type_id,
