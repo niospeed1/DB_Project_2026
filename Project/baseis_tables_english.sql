@@ -331,3 +331,13 @@ CREATE TABLE medical_act_assistants (
         FOREIGN KEY (personnel_id)
         REFERENCES personnel(personnel_id)
 );
+
+CREATE TABLE doctor_evaluation (
+    doctor_eval_id SERIAL PRIMARY KEY,
+    admission_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    medical_care INT CHECK (medical_care BETWEEN 1 AND 5),
+    CONSTRAINT fk_doc_eval_admission FOREIGN KEY (admission_id) REFERENCES admission(admission_id),
+    CONSTRAINT fk_doc_eval_doctor FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id),
+    CONSTRAINT uq_admission_doctor UNIQUE (admission_id, doctor_id)
+);
