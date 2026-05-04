@@ -182,7 +182,6 @@ CREATE TABLE admission (
     discharge_diagnosis TEXT,
     ken_id INT,
     total_cost NUMERIC(10,3),
-    admission_evaluation TEXT,
     room_id INT,
     CONSTRAINT fk_admission_patients
         FOREIGN KEY (patient_id)
