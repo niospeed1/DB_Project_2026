@@ -11,82 +11,90 @@ DECLARE
     v_location INT;
     v_surgeon_id INT;
     v_new_medical_act_id INT;
-    v_counter INT := 1;
+    v_num_docs INT;
+    v_num_nurses INT;
+    v_selected_dept_id INT;
 BEGIN
-    -- 1. Επιλέγουμε 600 τυχαίες νοσηλείες 
-    -- (προαιρετικά βάζουμε WHERE medical_act_id IS NULL για να μην πειράξουμε ήδη συμπληρωμένα)
-    FOR rec IN 
-        SELECT admission_id, admission_date, discharge_date 
-        FROM admission 
-        WHERE medical_act_id IS NULL
+
+    FOR i IN 1..600 LOOP
+        
+        SELECT a.admission_id, a.admission_date, a.discharge_date 
+        INTO rec
+        FROM admission a
+        LEFT JOIN medical_acts ma ON a.admission_id = ma.admission_id
+        GROUP BY a.admission_id, a.admission_date, a.discharge_date
+        HAVING COUNT(ma.medical_act_id) < 2
         ORDER BY random() 
-        LIMIT 600
-    LOOP
-        -- 2. Καθορισμός Κατηγορίας με βάση τον μετρητή
-        -- 1-300: Χειρουργική, 301-450: Διαγνωστική, 451-600: Θεραπευτική
-        IF v_counter <= 300 THEN
+        LIMIT 1;
+
+        IF NOT FOUND THEN
+            CONTINUE;
+        END IF;
+
+        IF i <= 300 THEN
             v_category := 'Χειρουργική';
-        ELSIF v_counter <= 450 THEN
+        ELSIF i <= 450 THEN
             v_category := 'Διαγνωστική';
         ELSE
             v_category := 'Θεραπευτική';
         END IF;
 
-        -- 3. Τυχαίος τύπος πράξης (FK στο medical_act_codes)
         SELECT medical_act_code_id INTO v_type_id 
         FROM medical_act_codes 
         ORDER BY random() 
         LIMIT 1;
 
-        -- 4. Υπολογισμός Διάρκειας (μικρότερη της διαφοράς discharge - admission)
-        -- Αν η διαφορά είναι 1 ή 0, η διάρκεια θα είναι 0 (αυθημερόν). 
         v_diff := rec.discharge_date - rec.admission_date;
         IF v_diff IS NULL OR v_diff <= 1 THEN
             v_duration := 0;
         ELSE
-            -- Τυχαίος ακέραιος από 0 έως (v_diff - 1)
             v_duration := floor(random() * (v_diff - 1) + 1)::int;
         END IF;
 
-        -- 5. Τυχαίο Κόστος (FK στο table ken)
         SELECT ken_id INTO v_cost_ken FROM ken ORDER BY random() LIMIT 1;
 
-        -- 6. Τοποθεσία (Room) & Γιατρός (Doctor) με βάση την κατηγορία
         IF v_category = 'Χειρουργική' THEN
-            -- Για χειρουργείο: Δωμάτιο 'Χειρουργείο' ή 'ΜΕΘ'
             SELECT room_id::INT INTO v_location 
             FROM rooms 
             WHERE room_type IN ('Χειρουργείο', 'ΜΕΘ') 
             ORDER BY random() LIMIT 1;
 
-            -- Για χειρουργείο: Γιατρός 'Χειρουργός'
             SELECT doctor_id INTO v_surgeon_id 
             FROM doctors 
             WHERE specialty = 'Χειρουργός' 
             ORDER BY random() LIMIT 1;
-        ELSE
-            -- Για Διαγνωστική/Θεραπευτική: Οποιοδήποτε άλλο δωμάτιο
-            SELECT room_id::INT INTO v_location 
-            FROM rooms 
-            WHERE room_type NOT IN ('Χειρουργείο', 'ΜΕΘ') 
+
+            SELECT department_id INTO v_selected_dept_id
+            FROM doctor_department
+            WHERE doctor_id = v_surgeon_id
             ORDER BY random() LIMIT 1;
 
-            -- Για Διαγνωστική/Θεραπευτική: Γιατρός ΠΟΥ ΔΕΝ ΕΙΝΑΙ 'Χειρουργός'
-            SELECT doctor_id INTO v_surgeon_id 
-            FROM doctors 
-            WHERE specialty != 'Χειρουργός' 
+        ELSE
+        
+            SELECT r.room_id, d.doctor_id, r.department_id
+            INTO v_location, v_surgeon_id, v_selected_dept_id
+            FROM rooms r
+            JOIN doctor_department dd ON r.department_id = dd.department_id
+            JOIN doctors d ON dd.doctor_id = d.doctor_id
+            WHERE r.room_type NOT IN ('Χειρουργείο', 'ΜΕΘ') 
+              AND d.specialty != 'Χειρουργός'
             ORDER BY random() LIMIT 1;
         END IF;
 
-        -- 7. Δημιουργία εγγραφής στον πίνακα medical_acts
+        IF v_location IS NULL OR v_surgeon_id IS NULL THEN
+            CONTINUE;
+        END IF;
+
         INSERT INTO medical_acts (
+            admission_id,          
             medical_act_type, 
             medical_act_category, 
             duration, 
-            medical_act_cost, 
+            medical_act_cost,      
             room_id, 
             surgeon_id
         ) VALUES (
+            rec.admission_id,
             v_type_id,
             v_category,
             v_duration,
@@ -95,13 +103,36 @@ BEGIN
             v_surgeon_id
         ) RETURNING medical_act_id INTO v_new_medical_act_id;
 
-        -- 8. Ενημέρωση του πίνακα admission με το νέο ID
-        UPDATE admission 
-        SET medical_act_id = v_new_medical_act_id 
-        WHERE admission_id = rec.admission_id;
+        
+        v_num_docs := floor(random() * 3)::int; 
+        v_num_nurses := floor(random() * 4)::int; 
 
-        -- Αύξηση μετρητή
-        v_counter := v_counter + 1;
+        IF v_selected_dept_id IS NOT NULL THEN
+            
+            IF v_num_docs > 0 THEN
+                INSERT INTO medical_act_assistants (medical_act_id, personnel_id)
+                SELECT v_new_medical_act_id, doctor_id
+                FROM (
+                    SELECT dd.doctor_id
+                    FROM doctor_department dd
+                    WHERE dd.department_id = v_selected_dept_id
+                      AND dd.doctor_id != v_surgeon_id
+                ) AS available_docs
+                ORDER BY random() 
+                LIMIT v_num_docs;
+            END IF;
+
+            IF v_num_nurses > 0 THEN
+                INSERT INTO medical_act_assistants (medical_act_id, personnel_id)
+                SELECT v_new_medical_act_id, nurse_id
+                FROM nurses n
+                WHERE n.department_id = v_selected_dept_id
+                ORDER BY random()
+                LIMIT v_num_nurses;
+            END IF;
+            
+        END IF;
+        
     END LOOP;
     
     COMMIT;
