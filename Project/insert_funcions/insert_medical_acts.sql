@@ -54,7 +54,7 @@ BEGIN
         -- 6. Τοποθεσία (Room) & Γιατρός (Doctor) με βάση την κατηγορία
         IF v_category = 'Χειρουργική' THEN
             -- Για χειρουργείο: Δωμάτιο 'Χειρουργείο' ή 'ΜΕΘ'
-            SELECT room_id::VARCHAR INTO v_location 
+            SELECT room_id::INT INTO v_location 
             FROM rooms 
             WHERE room_type IN ('Χειρουργείο', 'ΜΕΘ') 
             ORDER BY random() LIMIT 1;
@@ -66,7 +66,7 @@ BEGIN
             ORDER BY random() LIMIT 1;
         ELSE
             -- Για Διαγνωστική/Θεραπευτική: Οποιοδήποτε άλλο δωμάτιο
-            SELECT room_id::VARCHAR INTO v_location 
+            SELECT room_id::INT INTO v_location 
             FROM rooms 
             WHERE room_type NOT IN ('Χειρουργείο', 'ΜΕΘ') 
             ORDER BY random() LIMIT 1;
