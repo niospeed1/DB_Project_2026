@@ -16,33 +16,13 @@ CREATE TABLE doctors (
     association_number VARCHAR(30) NOT NULL UNIQUE,
     specialty VARCHAR(100) NOT NULL,
     rank VARCHAR(50),
+    supervisor_id INT NULL,
     CONSTRAINT fk_doctors_personnel
         FOREIGN KEY (doctor_id)
-        REFERENCES personnel(personnel_id)
-);
-
-ALTER TABLE doctors ADD COLUMN supervisor_id INT NULL;
-
-ALTER TABLE doctors 
-ADD CONSTRAINT fk_supervisor
-FOREIGN KEY (supervisor_id)
-REFERENCES doctors(doctor_id);
-
-CREATE TABLE nurses (
-    nurse_id INT PRIMARY KEY,
-    rank VARCHAR(50),
-    CONSTRAINT fk_nurses_personnel
-        FOREIGN KEY (nurse_id)
-        REFERENCES personnel(personnel_id)
-);
-
-CREATE TABLE administrative_personnel (
-    admin_id INT PRIMARY KEY,
-    duty VARCHAR(100) NOT NULL,
-    office VARCHAR(100),
-    CONSTRAINT fk_administrative_personnel_personnel
-        FOREIGN KEY (admin_id)
-        REFERENCES personnel(personnel_id)
+        REFERENCES personnel(personnel_id),
+    CONSTRAINT fk_supervisor
+        FOREIGN KEY (supervisor_id)
+        REFERENCES doctors(doctor_id)
 );
 
 CREATE TABLE departments (
@@ -57,21 +37,30 @@ CREATE TABLE departments (
         REFERENCES doctors(doctor_id)
 );
 
-ALTER TABLE nurses
-ADD COLUMN department_id INT;
+CREATE TABLE nurses (
+    nurse_id INT PRIMARY KEY,
+    rank VARCHAR(50),
+    department_id INT,
+    CONSTRAINT fk_nurses_personnel
+        FOREIGN KEY (nurse_id)
+        REFERENCES personnel(personnel_id),
+    CONSTRAINT fk_nurses_departments
+        FOREIGN KEY (department_id)
+        REFERENCES departments(department_id)
+);
 
-ALTER TABLE nurses
-ADD CONSTRAINT fk_nurses_departments
-FOREIGN KEY (department_id)
-REFERENCES departments(department_id);
-
-ALTER TABLE administrative_personnel
-ADD COLUMN department_id INT;
-
-ALTER TABLE administrative_personnel
-ADD CONSTRAINT fk_administrative_personnel_departments
-FOREIGN KEY (department_id)
-REFERENCES departments(department_id);
+CREATE TABLE administrative_personnel (
+    admin_id INT PRIMARY KEY,
+    duty VARCHAR(100) NOT NULL,
+    office VARCHAR(100),
+    department_id INT,
+    CONSTRAINT fk_administrative_personnel_personnel
+        FOREIGN KEY (admin_id)
+        REFERENCES personnel(personnel_id),
+    CONSTRAINT fk_administrative_personnel_departments
+        FOREIGN KEY (department_id)
+        REFERENCES departments(department_id)
+);
 
 CREATE TABLE doctor_department (
     doctor_id INT,
@@ -95,24 +84,19 @@ CREATE TABLE rooms (
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
+CREATE TYPE type_shift_types AS ENUM ('ΠΡΩΙ', 'ΑΠΟΓΕΥΜΑ', 'ΝΥΧΤΑ');
+
 CREATE TABLE shift (
     shift_id SERIAL PRIMARY KEY,
     department_id INT NOT NULL,
     shift_date DATE NOT NULL,
-    shift_type VARCHAR(50) NOT NULL,
+    shift_type type_shift_types NOT NULL,
+    shift_status VARCHAR(20) DEFAULT 'DRAFT' NOT NULL,
+    
     CONSTRAINT fk_shift_departments
         FOREIGN KEY (department_id)
         REFERENCES departments(department_id)
 );
-
-CREATE TYPE type_shift_types AS ENUM ('ΠΡΩΙ', 'ΑΠΟΓΕΥΜΑ', 'ΝΥΧΤΑ');
-
-ALTER TABLE shift 
-ALTER COLUMN shift_type TYPE type_shift_types 
-USING shift_type::type_shift_types;
-
-ALTER TABLE shift 
-ADD COLUMN shift_status VARCHAR(20) DEFAULT 'DRAFT' NOT NULL;
 
 CREATE TABLE personnel_shifts (
     shift_id INT,
