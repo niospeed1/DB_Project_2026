@@ -8,7 +8,7 @@ DECLARE
     v_duration INT;
     v_diff INT;
     v_cost_ken INT;
-    v_location VARCHAR(100);
+    v_location INT;
     v_surgeon_id INT;
     v_new_medical_act_id INT;
     v_counter INT := 1;
