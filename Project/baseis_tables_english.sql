@@ -154,9 +154,14 @@ CREATE TABLE diagnosis (
 
 CREATE TABLE medicine (
     drug_id SERIAL PRIMARY KEY,
-    drug_name TEXT NOT NULL,
+    drug_name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE medicine_substances (
+    drug_id INT NOT NULL,
     active_substance TEXT NOT NULL,
-    CONSTRAINT unique_farmako_ousia UNIQUE (drug_name, active_substance)
+    CONSTRAINT pk_medicine_substances PRIMARY KEY (drug_id, active_substance),
+    CONSTRAINT fk_medicine_sub_medicine FOREIGN KEY (drug_id) REFERENCES medicine(drug_id)
 );
 
 CREATE TABLE ken (
