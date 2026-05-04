@@ -45,7 +45,7 @@ BEGIN
             v_duration := 0;
         ELSE
             -- Τυχαίος ακέραιος από 0 έως (v_diff - 1)
-            v_duration := floor(random() * v_diff)::int;
+            v_duration := floor(random() * (v_diff - 1) + 1)::int;
         END IF;
 
         -- 5. Τυχαίο Κόστος (FK στο table ken)
