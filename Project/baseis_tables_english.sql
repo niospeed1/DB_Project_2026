@@ -236,7 +236,7 @@ CREATE TABLE medical_acts (
 );
 
 CREATE TABLE admission_evaluation (
-    aksiologhsh_id SERIAL PRIMARY KEY,
+    admission_evaluation_id SERIAL PRIMARY KEY,
     admission_id INT NOT NULL UNIQUE,
     medical_care INT,
     nursing_care INT,
