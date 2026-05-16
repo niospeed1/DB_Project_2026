@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE calculate_total_admission_costs()
+CREATE OR REPLACE PROCEDURE calculate_total_admission_cost()
 LANGUAGE plpgsql
 AS $$
 BEGIN
