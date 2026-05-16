@@ -25,3 +25,8 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_allergy_before_prescription
+BEFORE INSERT OR UPDATE ON prescription
+FOR EACH ROW
+EXECUTE FUNCTION prevent_allergic_prescription();
