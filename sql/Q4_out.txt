@@ -1,0 +1,60 @@
+ ID Ιατρού |   Όνομα   |   Επώνυμο   | Μέση Αξιολόγηση Ιατρού | Μέση Αξιολόγηση Νοσηλείας 
+-----------+-----------+-------------+------------------------+---------------------------
+         1 | Ανδρονίκη | Τουρναβίτης |                   5.00 |                      3.00
+(1 row)
+
+                                                                     QUERY PLAN                                                                      
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=78.39..78.54 rows=1 width=102) (actual time=0.262..0.264 rows=1 loops=1)
+   Group Key: d.doctor_id, p.first_name, p.last_name
+   ->  Sort  (cost=78.39..78.41 rows=9 width=46) (actual time=0.255..0.256 rows=1 loops=1)
+         Sort Key: p.first_name, p.last_name
+         Sort Method: quicksort  Memory: 25kB
+         ->  Nested Loop  (cost=33.79..78.24 rows=9 width=46) (actual time=0.111..0.252 rows=1 loops=1)
+               ->  Nested Loop  (cost=0.55..16.60 rows=1 width=38) (actual time=0.010..0.012 rows=1 loops=1)
+                     ->  Index Only Scan using doctors_pkey on doctors d  (cost=0.28..8.29 rows=1 width=4) (actual time=0.005..0.005 rows=1 loops=1)
+                           Index Cond: (doctor_id = 1)
+                           Heap Fetches: 1
+                     ->  Index Scan using personnel_pkey on personnel p  (cost=0.28..8.29 rows=1 width=38) (actual time=0.003..0.004 rows=1 loops=1)
+                           Index Cond: (personnel_id = 1)
+               ->  Hash Join  (cost=33.24..61.55 rows=9 width=12) (actual time=0.100..0.239 rows=1 loops=1)
+                     Hash Cond: (ae.admission_id = de.admission_id)
+                     ->  Seq Scan on admission_evaluation ae  (cost=0.00..24.50 rows=1450 width=8) (actual time=0.005..0.080 rows=999 loops=1)
+                     ->  Hash  (cost=33.12..33.12 rows=9 width=12) (actual time=0.085..0.085 rows=1 loops=1)
+                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                           ->  Seq Scan on doctor_evaluation de  (cost=0.00..33.12 rows=9 width=12) (actual time=0.008..0.083 rows=1 loops=1)
+                                 Filter: (doctor_id = 1)
+                                 Rows Removed by Filter: 896
+ Planning Time: 0.201 ms
+ Execution Time: 0.300 ms
+(22 rows)
+
+CREATE INDEX
+SET
+                                                                                   QUERY PLAN                                                                                    
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=55.25..55.33 rows=1 width=102) (actual time=0.050..0.051 rows=1 loops=1)
+   Group Key: d.doctor_id, p.first_name, p.last_name
+   ->  Sort  (cost=55.25..55.26 rows=4 width=46) (actual time=0.044..0.045 rows=1 loops=1)
+         Sort Key: p.first_name, p.last_name
+         Sort Method: quicksort  Memory: 25kB
+         ->  Nested Loop  (cost=5.14..55.21 rows=4 width=46) (actual time=0.040..0.041 rows=1 loops=1)
+               ->  Nested Loop  (cost=4.86..26.02 rows=4 width=46) (actual time=0.030..0.032 rows=1 loops=1)
+                     ->  Nested Loop  (cost=0.55..16.60 rows=1 width=38) (actual time=0.008..0.009 rows=1 loops=1)
+                           ->  Index Only Scan using doctors_pkey on doctors d  (cost=0.28..8.29 rows=1 width=4) (actual time=0.004..0.004 rows=1 loops=1)
+                                 Index Cond: (doctor_id = 1)
+                                 Heap Fetches: 1
+                           ->  Index Scan using personnel_pkey on personnel p  (cost=0.28..8.29 rows=1 width=38) (actual time=0.003..0.003 rows=1 loops=1)
+                                 Index Cond: (personnel_id = 1)
+                     ->  Bitmap Heap Scan on doctor_evaluation de  (cost=4.31..9.38 rows=4 width=12) (actual time=0.019..0.020 rows=1 loops=1)
+                           Recheck Cond: (doctor_id = 1)
+                           Heap Blocks: exact=1
+                           ->  Bitmap Index Scan on idx_q4_doctor_eval  (cost=0.00..4.31 rows=4 width=0) (actual time=0.017..0.017 rows=1 loops=1)
+                                 Index Cond: (doctor_id = 1)
+               ->  Index Scan using admission_evaluation_admission_id_key on admission_evaluation ae  (cost=0.28..7.29 rows=1 width=8) (actual time=0.008..0.008 rows=1 loops=1)
+                     Index Cond: (admission_id = de.admission_id)
+ Planning Time: 0.317 ms
+ Execution Time: 0.083 ms
+(22 rows)
+
+SET

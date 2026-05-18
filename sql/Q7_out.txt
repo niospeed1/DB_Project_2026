@@ -1,0 +1,16 @@
+    Δραστική Ουσία    | Αριθμός Φαρμάκων | Αριθμός Αλλεργικών Ασθενών 
+----------------------+------------------+----------------------------
+ Amoxicillin          |              557 |                         10
+ Ampicillin           |               61 |                          7
+ Ibuprofen            |             1383 |                          3
+ Ceftriaxone          |              122 |                          2
+ Ciprofloxacin        |              211 |                          2
+ Allopurinol          |              122 |                          2
+ Phenytoin            |               19 |                          1
+ Azithromycin         |              177 |                          1
+ Carbamazepine        |               77 |                          1
+ Clindamycin          |              142 |                          1
+ Naproxen             |              130 |                          1
+ Acetylsalicylic Acid |              589 |                          1
+(12 rows)
+

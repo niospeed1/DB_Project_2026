@@ -1,0 +1,7 @@
+      Δραστική Ουσία 1      |  Δραστική Ουσία 2   | Συχνότητα 
+----------------------------+---------------------+-----------
+ Calcium Chloride Dihydrate | Glucose Monohydrate |         7
+ Leucine                    | Serine              |         6
+ Glutamic Acid              | Phenylalanine       |         6
+(3 rows)
+
